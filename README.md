@@ -25,11 +25,11 @@
 ```
 RPN/
 ├── CMakeLists.txt      # メインのCMake設定
+├── README.md       # このファイル
 ├── src/
 │   ├── librpn.hpp         # RPN計算ライブラリのヘッダ（API定義）
 │   ├── librpn.cpp         # RPN計算ライブラリの実装
-│   ├── main.cpp        # デモプログラム
-│   └── README.md       # このファイル
+│   └── main.cpp        # デモプログラム
 └── test/
     ├── CMakeLists.txt  # テスト用CMake設定
     └── rpn_test.cpp    # Google Testによるユニットテスト
