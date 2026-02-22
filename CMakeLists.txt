@@ -3,9 +3,9 @@
 #
 # Project: [CMake Template Project]
 # Author: [mitsuruk]
-# Date:    2025/11/26
-# License: CC0 1.0 Universal
-# This work is dedicated to the public domain. No rights reserved.
+# Date:    2026/02/12
+# License: MIT License
+# See LICENSE.md for details.
 # =============================================================================
 # Minimum CMake version
 cmake_minimum_required(VERSION 3.20)
@@ -138,9 +138,9 @@ target_compile_features(${PROJECT_NAME} PRIVATE c_std_17 cxx_std_17)
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     PROJECT_NAME="${PROJECT_NAME}"
     PROJECT_VERSION="${PROJECT_VERSION}"
-    ONE_=1      # This is a numeric constant example.
-    TWO_=2      # This is another numeric constant example.
-    THREE_=3    # This is yet another numeric constant example.
+    ONE_=1 # This is a numeric constant example.
+    TWO_=2 # This is another numeric constant example.
+    THREE_=3 # This is yet another numeric constant example.
 )
 
 # Example: setting properties for a specific source file
@@ -235,15 +235,27 @@ if(APPLE)
         COMMAND "otool" "-L" "${BINARY_OUTPUT_DIR}/${PROJECT_NAME}" # List linked libraries
         COMMENT "${PROJECT_NAME} information"
     )
-
-    # copy compile_commands.json back to source tree
-    add_custom_command(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
-        COMMENT "Copying compile_commands.json to source directory"
-    )
 endif()
+
+# ----------------------------
+# Post-build diagnostics
+# (Some commands are clangd specific)
+# ----------------------------
+# copy compile_commands.json back to source tree
+add_custom_command(
+    TARGET ${PROJECT_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
+    COMMENT "Copying compile_commands.json to source directory"
+)
+
+# remove clangd cache files.
+add_custom_command(
+    TARGET ${PROJECT_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "${PROJECT_SOURCE_DIR}/.cache"
+)
+
 
 # ----------------------------
 # Includes
@@ -398,6 +410,10 @@ endfunction()
 # ----------------------------
 if(GTEST)
     find_package(GTest REQUIRED)
+
+    # Enable testing for this project
+    enable_testing()
+
     target_link_libraries(
         ${PROJECT_NAME}
         PRIVATE
@@ -407,10 +423,30 @@ if(GTEST)
         GTest::gmock
         GTest::gmock_main
     )
+
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "GTEST")
+
+    # Register the test executable with CTest
+    add_test(
+        NAME ${PROJECT_NAME}_tests
+        COMMAND ${PROJECT_NAME}
+        WORKING_DIRECTORY ${BINARY_OUTPUT_DIR}
+    )
+
+    # Optional: Set test properties
+    set_tests_properties(${PROJECT_NAME}_tests PROPERTIES
+        TIMEOUT 60  # 60 seconds timeout
+        ENVIRONMENT "GTEST_COLOR=1"  # Enable colored output
+    )
+
     #[[
         If you want to use GoogleTest, run:
           cmake -DGTEST=true ..
+          cmake --build .
+          ctest  # or ctest --verbose
+
+        You can also run the test executable directly:
+          ./${PROJECT_NAME}
 
         You can also add this to main.cpp:
 
@@ -421,17 +457,6 @@ if(GTEST)
             return RUN_ALL_TESTS();
         }
     #]]
-endif()
-
-# ----------------------------
-# Test subdirectory (if exists)
-# ----------------------------
-# テストディレクトリが存在する場合、テストターゲットも同時にビルド
-if(EXISTS ${PROJECT_SOURCE_DIR}/test/CMakeLists.txt)
-    enable_testing()
-    add_subdirectory(test)
-    message(STATUS "===============================================================")
-    message(STATUS "Test subdirectory added: ${PROJECT_SOURCE_DIR}/test")
 endif()
 
 # setting information for install rules
