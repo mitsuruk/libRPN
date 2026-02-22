@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  test:
     strategy:
       fail-fast: false
       matrix:
@@ -41,8 +41,7 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -B build \
-            -DGTEST=true \
+          cmake -B build -S test \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
             -DCMAKE_C_COMPILER=${{ matrix.cc }}
         env:
