@@ -1,5 +1,7 @@
 # RPN (逆ポーランド記法) 計算機
 
+[![CI](https://github.com/mitsuruk/libRPN/actions/workflows/ci.yml/badge.svg)](https://github.com/mitsuruk/libRPN/actions/workflows/ci.yml)
+
 通常の数式（中置記法）をRPN（逆ポーランド記法）に変換し、計算するC++プログラムです。
 
 ## 概要
